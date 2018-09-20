@@ -1,0 +1,50 @@
+# 掌握了单片机控制蜂鸣器BUZZER(我的实验板上的蜂鸣器是脉冲控制的）
+#include<reg52.h>
+#define uint unsigned int
+sbit D1=P1^5;我的开发板P1 5接口控制蜂鸣器
+void delay(unit z);
+void delay(unit z)//延时函数
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
+void main()
+{
+  while(1)
+  {
+    D1=~D1;
+    delay(30);//这两句的意思是产生脉冲
+  }
+}
+
+# 掌握了单片机流水灯的程序设计（很开心）//别傻逼，循环彩灯一定要有循环的^_^
+#include<reg52.h>
+#include<intrins.h>
+#define uint unsigned int
+#define uchar unsigned char
+uchar temp;
+void delay(uint z);
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
+void main()
+{
+  temp=0xfe;
+  while(1)
+  {
+    P2=temp;
+    delay(30);
+    temp=_crol_(temp,1);
+    P2=temp;
+    delay(30);
+  }
+}
+# 昨天降雨没有去跑步很烦，由于天气原因已经连续两天没有运动了，国庆节是否要回家有待商榷，
+# 真的，解决自身发展是解决一切问题的根源
+# 加油↖(^ω^)↗期待又是精彩的一天
+# 最后吐槽一下，香蜜沉沉烬如霜还是很虐的嘛^_^很过瘾，主题曲很有代入感
+# 加油，时间真的过得太快了
