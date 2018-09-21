@@ -1,0 +1,81 @@
+# 今天学习了控制数码管，静态控制和动态控制
+# 静态控制如下：//我的板子是138译码器控制片选
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+void delay(uint z);
+sbit LA=P2^2;
+sbit LB=P2^3;
+sbit LC=P2^4;
+uchar code liebiao[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f};
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
+void main()
+{
+  uint i;
+  LA=0;
+  LB=0;
+  LC=0;
+  while(1)
+  {
+    for(i=0;i<8;i++)
+      P0=liebiao[i];
+  }
+}
+# 动态控制如下：//用switch case()语句轮流选中片选
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+void delay(uint z);
+void pianxuan();
+sbit LA=P2^2;
+sbit LB=P2^3;
+sbit LC=p2^4;
+uchar code liebiap[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f};
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
+void pianxuan()
+{
+  uint i;
+  for(i=0;i<8;i++)
+  {
+    switch(i)
+    {
+      case(0):
+        LA=0;LB=0;LC=0;break;
+      case(1):
+        LA=1;LB=0;LC=0;break;
+      case(2):
+        LA=0;LB=1;LC=0;break;
+      case(3):
+        LA=1;LB=1;LC=0;break;
+      case(4):
+        LA=0;LB=0;LC=1;break;
+      case(5):
+        LA=1;LB=0;LC=1;break;
+      case(6):
+        LA=0;LB=1;LC=1;break;
+      case(7):
+        LA=1;LB=1;LC=1;break;
+    }
+    P0=liebiao[i];
+    delay(200);
+  }
+}
+void mian()
+{
+  while(1)
+    pianxuan();
+}
+
+# 昨天去跑步了，因为雨天停滞了两天，很烦
+# 解决自我发展是解决一切问题的根源
+# 期待(☆▽☆)更好的今天^_^
