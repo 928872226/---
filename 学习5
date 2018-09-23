@@ -1,0 +1,31 @@
+# 昨天放纵了一天，浪了一天
+# 前天学习了单片机独立按键，按一次开关灯亮，再按一次开关灯灭
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+void delay(uint z);
+void kaiguan();
+sbit LED1=P2^0;
+sbit K1=P3^1;
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
+void kaiguan()
+{
+  if(K1==0)
+  {
+    delay(30);
+    if(K1==0)
+      LED1=~LED1;
+    while(!K1);
+  }
+}
+void main()
+{
+  kaiguan();
+}
+
+# 昨天跑步了 ^_^
