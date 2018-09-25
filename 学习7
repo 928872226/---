@@ -1,0 +1,46 @@
+# 独立按键的显示与消抖，并用数码管记录一共按了几次 //简单的循环嵌套与消抖
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned cahr
+void delay(uint z);
+uchar code liebiao[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f};
+uchar a;
+sbit LED1=P2^0;
+sbit K1=P3^1;
+sbit LA=P2^2;
+sbit LB=P2^3;
+sbit LC=P2^4;
+void main()
+{
+  a=0;
+  P3=0xff;
+  LA=0;
+  LB=0;
+  LC=0;
+  while(1)
+  {
+    if(K1==0)
+    {
+      delay(10);
+      if(K1==0)
+      {
+        LED1=0;
+        a++;
+        if(a==10)
+          a=0;
+      }
+      while(!K1);
+      delay(10);
+      while(!K1);
+    }
+    elae
+      LED1=1;
+    P0=liebiao[a];
+  }
+}
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
