@@ -1,0 +1,122 @@
+# 过了一个愉快的中秋节，消化进度都变慢了
+# 中断、定时器、流水灯、数码管显示的综合例程
+#include<reg52.h>
+#include<intrins.h>
+#define uint unsigned int
+#define uchar unsigned char
+void init();
+void delay(uint z);
+void xianshi(uchar aa,uchar bb,uchar cc,uchar bai,uchar shi,uchar ge);
+uchar temp,t0,t1,bai,shi,ge,flag,flag1;
+uint shu;
+sbit LA=P2^2;
+sbit LB=P2^3;
+sbit LC=P2^4;
+uchar code liebiao[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,
+											0x76,0x79,0x38,0x3f,0};
+void main()
+{
+  init();
+  while(1)
+  {
+    if(flag!=1)
+      xianshi(7,5,6,bai.shi.ge);
+    else
+      xianshi(10,11,12,12,13,14);
+  }
+}
+void init()
+{
+  shu=423;
+  temp=0xfe;
+  P2=temp; //选择第一个灯亮
+  TMOD=0x11; //设置两个定时器的工作方式
+  TH0=(65536-50000)/256; //对两个定时器赋初值
+  TL0=(65536-50000)%256;
+  TH1=(65536-50000)/256;
+  TL0=(65536-50000)%256;
+  EA=1; //开启总中断
+  ET0=1; //允许定时器中断
+  ET1=1;
+  TR0=1; //开启定时器中断
+  TR1=1;
+}
+void timer0 interrupt 1 // 定时器T0的中断执行程序
+{
+  TH0=(65536-50000)/256;
+  TL0=(65536-50000)%256;
+  t0++;
+  if(flag!=1)
+  {
+    if(t0==10) //定时500ms
+    {
+      t0=1;
+      temp=_crol_(temp,1);
+      P2=temp;
+    }
+    else
+    {
+      if(t0%4==0)
+      P2=~P2;
+      if(t0==60)
+      {
+        TR0=0;
+        P2=0xff;
+        flag1=1;
+      }
+    }
+  }
+}
+void timer1() interrupt 3 //定时器t1的中断定时程序
+{
+  TH1=(65536-50000)/256;
+  TL1=(65536-50000)%256;
+  t1++;
+  if(t1==2) //延时100ms
+  {
+    t1=0;
+    shu--;
+    bai=shu/100;
+    shi=shu%100/10;
+    ge=shu%10;
+    if(shu==398)
+    {
+      TR0=0;
+      TH0=(65536-50000)/256;
+      TL0=(65536-50000)%256;
+      TR0=1;
+      flag=1;
+      t0=0;
+      P2=0xff;
+      TR1=0;
+    }
+  }
+}
+viod xianshi(uchar aa,uchar bb,uchar cc,uchar bai,uchar shi,uchar ge)
+{
+  uint i;
+  for(i=0;i<6;i++)
+  {
+    switch(i)
+    {
+      case(0):
+        LA=0;LB=0;LC=0;P0=liebiao[ge];delay(10);break;
+      case(1):
+        LA=1;LB=0;LC=0;P0=liebiao[shi];delay(10);break;
+      case(2):
+        LA=0;LB=1;LC=0;P0=liebiao[bai];delay(10);break;
+      case(3):
+        LA=1;LB=1;LC=0;P0=liebiao[cc];delay(10);break;
+      case(4):
+        LA=0;LB=0;LC=1;P0=liebiao[bb];delay(10);break;
+      case(5):
+        LA=1;LB=0;LC=1;P0=liebiao[aa];delay(10);break;
+    }
+  }
+}
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
