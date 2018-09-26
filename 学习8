@@ -1,0 +1,165 @@
+# 51单片机矩阵按键，利用动态循环扫描，检测每一位的按键情况,用到了按位与的操作
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+uchar code liebiao[]={0x3f , 0x06 , 0x5b ,0x4f , 0x66 , 0x6d ,0x7d ,
+                   0x07 , 0x7f , 0x6f ,0x77 , 0x7c , 0x39 , 
+                   0x5e , 0x79 , 0x71 , 0x00};
+uchar temp;
+void delay(uint z);
+void init();
+void xianshi(uchar num);
+void jianpan();
+sbit LA=P2^2;
+sbit LB=P2^3;
+sbit LC=P2^4;
+uchar num;
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
+void init()
+{
+  LA=0;
+  LB=0;
+  LC=0;
+}
+void jianpan()
+{
+  P1=0x7f; //先检测矩阵按键的第一行
+  temp=P1;
+  temp=temp&0x0f; //变化的是temp,而不是P1,与0x0f相与是为了屏蔽前4位
+  if(temp!=0x0f)
+  {
+    delay(20);
+    temp=P1;  
+    temp=temp&0x0f; //消抖程序
+    if(temp!=0x0f)
+    {
+      temp=P1; //把现在的P1值赋给temp,并以现在的值判断那一个键被按下了
+      switch(temp)
+      {
+        case(0x77):
+          num=0;break;
+        case(0x7b):
+          num=1;break;
+        case(0x7d):
+          num=2;break;
+        case(0x7e):
+          num=3;break;
+      }
+      while(temp!=0x0f) //松手检测
+      {
+        temp=P1;
+        temp=temp&0x0f;
+      }
+      xianshi(num)
+    }
+  }
+  P1=0xbf;
+	temp=P1;
+	temp=temp&0x0f;
+	if(temp!=0x0f)
+	{
+		delay(20);
+		temp=P1;
+		temp=temp&0x0f;
+		if(temp!=0x0f)
+		{
+			temp=P1;
+			switch(temp)
+			{
+				case(0xb7):
+					num=4;break;
+				case(0xbb):
+					num=5;break;
+				case(0xbd):
+					num=6;break;
+				case(0xbe):
+					num=7;break;
+			}
+			while(temp!=0x0f)
+			{
+				temp=P1;
+				temp=temp&0x0f;
+			}
+			xianshi(num);
+	  } 
+	}
+	P1=0xdf;
+	temp=P1;
+	temp=temp&0x0f;
+	if(temp!=0x0f)
+	{
+		delay(20);
+		temp=P1;
+		temp=temp&0x0f;
+		if(temp!=0x0f)
+		{
+			temp=P1;
+			switch(temp)
+			{
+				case(0xd7):
+					num=8;break;
+				case(0xdb):
+					num=9;break;
+				case(0xdd):
+					num=10;break;
+				case(0xde):
+					num=11;break;
+			}
+			while(temp!=0x0f)
+			{
+				temp=P1;
+				temp=temp&0x0f;
+			}
+			xianshi(num);
+	  } 
+	}
+	P1=0xef;
+	temp=P1;
+	temp=temp&0x0f;
+	if(temp!=0x0f)
+	{
+		delay(20);
+		temp=P1;
+		temp=temp&0x0f;
+		if(temp!=0x0f)
+		{
+			temp=P1;
+			switch(temp)
+			{
+				case(0xe7):
+					num=12;break;
+				case(0xeb):
+					num=13;break;
+				case(0xed):
+					num=14;break;
+				case(0xee):
+					num=15;break;
+			}
+			while(temp!=0x0f)
+			{
+				temp=P1;
+				temp=temp&0x0f;
+			}
+			xianshi(num);
+	  } 
+	}
+}
+void xianshi(uchar num)
+{
+  P0=liebiao[num];
+}
+void main()
+{
+  init();
+  while(1)
+    jianpan();
+}
+
+# 51单片机4*4矩阵按键，明白动态循环扫描的原理，理解按位与的概念
+# 昨天去跑步了，↖(^ω^)↗
+# 满怀热情地期待新的一天，~\(≧▽≦)/~啦啦啦
