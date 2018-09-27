@@ -1,0 +1,54 @@
+# 昨天学习了外部中断，外部中断直接向CPU申请中断请求 很烦为什么实际不成功
+# 用外部中断实现按下键灯亮，松开手灯灭
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+void delay(uint z);
+sbit K3=P3^2; //外部中断源，当K3摁下送出一个下降沿，进入中断程序
+sbit LED=P2^0;
+void main()
+{
+  LED=1;
+  IT0=1; //设置触发方式为边沿触发
+  EX0=1; //打开外部中断0
+  EA=1; //打开总中断
+  while(1);
+}
+void zhongduan() interrupt 0
+{
+  delay(10); //消抖的
+  if(K3==0)
+    LED=0;
+  else
+    LED=1;
+}
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
+
+# 昨天又学习了定时器，定时器一旦启动，除非关闭，否则定时器一直跑
+# 用定时器实现一秒灯灭一秒灯亮
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+sbit LED=P2^2;
+void main()   
+{
+  TMOD=0x01; //选择定时器，并设定其工作方式
+  TH0=(65536-1000)/256; //设置定时器的初值
+  TL0=(65536-1000)%256;
+  ET0=1; //打开t0定时器中断
+  EA=1; //打开总中断
+  TR0=1; //启动t0定时器
+  while(1);
+}
+void dingshi() interrupt 1     //每1毫秒执行一次中断
+{
+  LED=~LED;
+  TH0=(65536-1000)/256;
+  TL0=(65536-1000)%256;
+}
+# 昨天去跑步了哈哈
