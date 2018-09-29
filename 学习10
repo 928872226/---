@@ -1,0 +1,35 @@
+#今天主要看了AD/DA数模转换，一头雾水，很难受，板子太垃圾，只能做验证
+#主要学习了用51单片机产生PWM波形，次品，一个呼吸灯程序都没写出来
+#以下是51用定时器产生PWM波形的程序
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+uchar time;
+sbit PWM=P2^0;
+void init()
+{
+  TMOD=0x01;
+  TH0=(65536-1000)/256;
+  TL0=(65536-1000)%256;
+  ET0=1;
+  EA=1;
+  TR0=1;
+  time=0;
+}
+void dingshi() interrupt 1
+{
+  TR0=0;
+  TH0=(65536-1000)/256;
+  TL0=(65536-1000)%256;
+  TR0=1;
+  time++;
+  if(time>=10)
+    time=0;
+  if(time<=5)
+    PWM=1;
+  else
+    PWM=0;
+}
+#要时常复习所学过的知识，很烦AD/DA转换原理会了，但代码写不出来
+#加强锻炼，学习和运动总有一个在路上  ^_^
+#明天学习串口通信，有点期待学习m1602显示屏了
