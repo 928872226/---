@@ -1,0 +1,73 @@
+# 实现单片机的串口通信，将计算机输入单片机的数据显示在数码管上，再将单片机中的数据返还给计算机
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+sbit LA=P2^2;
+sbit LB=P2^3;
+sbit LC=P2^4;
+uchar code liebiao[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,0x77,0x7c,0x39,0x5e,0x79,0x71};
+uchar num;
+void delay(uint z);
+void init();
+void xianshi(uchar a);
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
+void init()
+{
+  PCON=0x80;
+  TMOD=0x20;
+  TH1=0xf3;
+  TL1=0xf3;
+  TR1=1;
+  SM0=0;
+  SM1=1;
+  REN=1;
+  ES=1;
+  EA=1;
+}
+void tongxin() interrupt 4
+{
+  RI=0;
+  num=SBUF;
+  SBUF=num;
+  while(!TI);
+  TI=0;
+}
+void xianshi(uchar a)
+{
+  uint i;
+  uchar wan,qian,bai,shi,ge;
+  wan=a/10000;
+  qian=a%10000/1000;
+  bai=a%1000/100;
+  shi=a%100/10;
+  ge=a%10;
+  for(i=0;i<5;i++)
+  {
+    switch(i)
+    {
+      case(0):
+        LA=0;LB=0;LC=0;P1=liebiao[ge];delay(1);break;
+      case(1):
+        LA=1;LB=0;LC=0;P1=liebiao[shi];delay(1);break;
+      case(2):
+        LA=0;LB=1;LC=0;P1=liebiao[bsi];delay(1);break;
+      case(3):
+        LA=1;LB=1;LC=0;P1=liebiao[qian];delay(1);break;
+      case(4):
+        LA=0;LB=0;LC=1;P1=liebiao[wan];delay(1);break;
+    }
+    if(i>=5)
+      i=0;
+  }
+}
+void main()
+{
+  init()
+  while(1)
+    xianshi(num);
+}
