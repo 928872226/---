@@ -1,0 +1,73 @@
+# 今天学习了1206显示屏
+# 在1206显示屏上显示"I LOVE YOU!""HAPPY EVERY DAY" 示例代码如下
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+sbit EN=P2^7;
+sbit RWN=P2^5;
+sbit RSN=P2^6;
+uchar code liebiao[]="I LOVE YOU!";
+uchar code liebiao1[]="HAPPY EVERY DAY";
+uchar i;
+void delay(uint z);
+void init();
+void xie_com(uchar com);
+void xie_shuju(uchar shuju);
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
+void init()
+{
+  EN=0;
+  xie_com(0x38);
+  xie_com(0x0f);
+  xie_com(0x06);
+  xie_com(0x01);
+  xie_com(0x80);
+}
+void xie_com(uchar com)
+{
+  RSN=0;
+  RWN=0;
+  P0=com;
+  delay(5);
+  EN=1;
+  delay(10); 
+  EN=0;
+}
+void xie_shuju(uchar shuju)
+{
+  RSN=1;
+  RWN=0;
+  P0=shuju;
+  delay(5);
+  EN=1;
+  delay(10);
+  EN=0;
+}
+void main()
+{
+  init();
+  xie_com(0x80+0x03);
+  for(i=0;i<11;i++)
+  {
+    xie_shuju(liebiao[i]);
+    delay(300);
+  }
+  xie_com(0x80+0x41);
+  for(i=0;i<15;i++)
+  {
+    xie_shuju(liebiao1[i]);
+    delay(300);
+  }
+  while(1);
+}
+
+# 最近有点懈怠七天没有跑步，晚上还加餐，很烦，好习惯是靠一点一点积累的
+# 学习也是一点一点的积累，厚积才可以薄发，不慌不忙按照自己的节奏一点点走就好了^_^
+# 每一天都值得期待
+# 你还很年轻，将来你会遇到很多人，经历很多事，得到很多，也会失去很多，但无论如何，有两样东西你绝不能丢弃，一个叫良心，另一个叫理想
+# 总有人过上了自己想要的生活，所以为什么是我呢？ 于是我又开始奔跑了...
