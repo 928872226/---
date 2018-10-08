@@ -1,0 +1,217 @@
+# 学习了用1602显示屏+单片机完成一个时钟设计
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+sbit EN=P2^7;
+sbit RWN=P2^5;
+sbit RSN=P2^6;
+sbit K1=P3^1;
+sbit K2=P3^0;
+sbit K3=P3^2;
+uchar code liebiao[]="2018-10-8 Mon"
+uchar code liebiao1[]="00:00:00"
+uchar a.k11;
+char miao,fen,shi;
+void delay(uint z)
+{
+  uint x,y;
+  for(x=z;x>0;x--)
+    for(y=100;y>0;y--);
+}
+void xie_com(uchar com)
+{
+  RSN=0;
+  RWN=0;
+  EN=0;
+  P0=com;
+  delay(5);
+  EN=1;
+  delay(10);
+  EN=0;
+}
+void xie_shuju(uchar shuju)
+{
+  RAN=1;
+  RWN=0;
+  EN=0;
+  P0=shuju;
+  delay(5);
+  EN=1;
+  delay(10);
+  EN=0;
+}
+void init()
+{
+  uchar i;
+  EN=0;
+  xie_com(0x38);
+  xie_com(0x0c);
+  xie_com(0x06);
+  xie_com(0x01);
+  xie_com(0x80+0x01);
+  for(i=0;i<13;i++)
+  {
+    xie_shuju(liebiao[i]);
+    delay(5);
+  }
+  xie_com(0x80+0x44)
+  {
+    xie_shuju(liebiao1[i]);
+    delay(5);
+  }
+  TMOD=0x01;
+  TH0=(65536-50000)/256;
+  TL0=(65536-50000)%256;
+  ET0=1;
+  EA=1;
+  TR0=1;
+}
+void xie_sfm(uchar add,uchar shu)
+{
+  uchar shi,ge;
+  shi=shu/10;
+  ge=shu%10;
+  xie_com(0x80+0x40+add);
+  xie_shuju(0x30+shi); //查1602标准字符库所得
+  xie_shuju(0x30+ge);
+}
+void jianpan()  //用于进行时间的调整
+{
+  if(K1==0)
+  {
+    delay(5);
+    if(K1==0)
+    {
+      K11++;
+      while(!K1);
+      if(K11==1)
+      {
+        TR0=0;
+        xie_com(0x80+0x40+10); //把光标移动到此位置
+        xie_com(0x0f); //光标闪烁
+      }
+      if(K11==2)
+      {
+        xie_com(0x80+0x40+7);
+      }
+      if(K11==3)
+      {
+        xie_com(0x80+0x40+4);
+      }
+      if(K11==4)
+      {
+        K11=0;
+        xie_com(0x0c); //光标恢复为原样
+        TR0=1;
+      }
+    }
+  }
+  if（K11!=0)
+  {
+    if(K2==0)
+    {
+      delay(5); //延时消抖
+      if(K2==0)
+      {
+        while(!K2); //松手检测
+        if(K11==1)
+        {
+          miao++;
+          if(miao==60)
+            miao=0;
+          xie_sfm(10,miao);
+          xie_com(0x80+0x40+10);
+        }
+        if(K11==2)
+        {
+          fen++;
+          if(fen==60)
+            fen=0;
+          xie_sfm(7,fen);
+          xie_com(0x80+0x40+7);
+        }
+        if(K11==3)
+        {
+          shi++;
+          if(shi=24)
+            shi=0;
+          xie_sfm(4,shi);
+          xie_com(0x80+0x40+4);
+        }  
+      }
+    }
+    if(K3==0)
+    {
+      delay(5);
+      if(K3==0)
+      {
+        while(!K3);
+        if(K11==1)
+        {
+          miao--;
+          if(miao==-1)
+            miao=59;
+          xie_sfm(10,miao);
+          xie_com(0x80+0x40+10);
+        }
+        if(K11==2)
+        {
+          fen--;
+          if(fen==-1)
+            fen=59;
+          xie_sfm(7,fen);
+          xie_com(0x80+0x40+7);
+        }
+        if(K11==3)
+        {
+          shi--;
+          if(shi==-1)
+            shi=23;
+          xie_sfm(4,shi);
+          xie_com(0x80+0x40+4);
+        }
+      }
+    }
+  }
+}
+void main()
+{
+  init();
+  while(1)
+  {
+    jianpan();
+  }
+}
+void dingshi0() interrupt 1
+{
+  TH0=(65536-50000)/256;
+  TL0=(65536-50000)%256;
+  a++;
+  if(a==20)
+  {
+    a=0;
+    miao++;
+    if(miao==60)
+    {
+      miao=0;
+      fen++;
+      if(fen==60)
+      {
+        fen=0;
+        shi++;
+        if(shi==24)
+        {
+          shi=0;
+        }
+        xie_sfm(4,shi);
+      }
+      xie_fen(7,fen);
+    }
+    xie_miao(10,miao);
+  }
+}
+
+# 第一次写这么长的代码，很开心^_^ 单片机至此快学了一多半了，东西都是练出来的，要多练多思考。
+# 是时候对下一步做出进一步规划了，C语言上课时的PPT从头浏览一遍，找找感觉；MATLAB是时候要系统的学一下了。
+# STM32的学习要向后延了...
+# 每天都有进步就好 加油↖(^ω^)↗
