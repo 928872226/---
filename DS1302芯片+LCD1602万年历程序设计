@@ -1,0 +1,116 @@
+# 感觉不会的东西很多，需要加油了，我感觉兴趣是最重要的，一直加油就可以了^_^
+# 下一步的计划打算熟悉C语言，看一看计算机的操作系统，进一步掌握一下labview的学习
+# 废话不多说直接上代码，通过这个程序掌握了很多知识，进一步体会到了数电的重要性，串口通信的重要性
+# DS1302+LCD1602万年历程序示例
+#include<reg52.h>
+#include<intrins.h> //调用_nop()_延时一个指令周期的头文件
+#define uint unsigned int
+#define uchar unsigned char
+sbit CEN=P3^5;
+sbit IO=P3^4;
+sbit SCLK=P3^6;
+uchar code du_add[]={0x81,0x83,0x85,0x87,0x89,0x8b,0x8d};
+uchar code xie_add[]={0x80,0x82,0x84,0x86,0x88,0x8a,0x8c};
+uchar code time[7]={0,0,0,13,10,6,18}
+void xie_dszijie(uchar zijie) //操作DS1302向里面写入一个字节
+{
+  uchar i;
+  for(i=0;i<8;i++)
+  {
+    SCLK=0;
+    _nop()_;
+    IO=zijie&0x01; //先送最低位
+    zijie>>=1;
+    SCLK=1;
+    _nop()_;
+  }
+}
+void xie_ds(uchar add,uchar shuju) //操作DS1302先写地址，再写数据
+{
+  CEN=0;
+  _nop()_;
+  SCLK=0;
+  _nop()_;
+  CEN=1;
+  xie_dszijie(add);
+  xie_dazijie(shuju);
+  CEN=0;
+  _nop()_;
+}
+uchar du_ds(uchar add) //操作DS1302，读出芯片里的数据
+{
+  uchar i,shu=0x00;
+  CEN=0;
+  _nop()_;
+  SCLK=0;
+  _nop()_;
+  CEN=1;
+  xie_dszijie(add); //先写入读的地址，再从地址中读取要获得的数据
+  for(i=0;i<8;i++)
+  {
+    if(IO==1)      //如果输出口的值为1，把shu的最高位至1，如果为0，值不变，shu再右移，循环8次后最高位变最低位获得数据（先读最低位）
+      shu|=0x80;
+    shu>>=1;
+    SCLK=0;
+    _nop()_;
+    SCLK=1;
+    _nop()_;
+  }
+  CEN=O;     //以下为复位DS1302的操作，避免读出的数据发生跳动
+  _nop()_;
+  _nop()_;
+  CEN=0;
+  _nop()_;
+  _nop()_;
+  SCLK=0;
+  _nop()_;
+  _nop()_;
+  _nop()_;
+  SCLK=1;
+  _nop()_;
+  _nop()_;
+  IO=0;
+  _nop()_;
+  _nop()_;
+  IO=1;
+  _nop()_;
+  _nop()_;
+  return shu;
+}
+void du_time() //从DS1302中读出要获取的时间注意读出的数为BCD码，而非十进制数，需要BCD转十进制数的操作
+{
+  uchar i;
+  for(i=0;i<7;i++)
+    time[i]=du_ds(du_add[i]);
+}
+uchar BCD_Dec(uchar BCD) //例如十进制数32 BCD码为:0x32 我们从DS1302读出来的是0x32 单片机认为它是十六进制数而非十进制数，因此需要转换
+{
+  uchar shu,shu1;
+  shu1=BCD/16;
+  shu=shu1*10+(BCD&0x0f);
+  return shu;
+}
+uchar Dec_BCD(uchar Dec) //如十进制数32 BCD码为0x32相当于把十进制数32转为十六进制数0x32
+{
+  uchar shu,shu1;
+  shu1=Dec/10;
+  shu=shu1*16+Dec%10;
+  return shu;
+}
+void ds_init() //初始化DS1302，并设定好显示的初始数值，注意输入的是十进制数，而DS1302识别BCD码，因此需要Dec-BCD
+{
+  uchar i;
+  CEN=0;
+  SCLK=0;
+  for(i=0;i<7;i++)
+    time[i]=Dec_BCD(time[i]);
+  xie_ds(0x8e,0x00); //取消DS1302的写保护，使写保护寄存器WP位置0，可以向DS1302写入数据
+  for(i=0;i<7;i++)
+    xie_ds(xie_add[i],time[i]);
+  xie_ds(0x8e,0x80); //打开DS1302写保护，禁止再向DS1302写入数据
+}
+//以上代码为DS1302 编写的全部过程，下面为DS1602LCD显示屏的编写
+略......
+# 串口通信真的很重要，iic spi 这些协议一定要弄懂
+# 要运动，身体最重要^_^
+# 期待每一天......
