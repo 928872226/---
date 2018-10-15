@@ -8,10 +8,19 @@ sbit SCLK=P3^6;
 sbit EN=P2^7;
 sbit RWN=P2^5;
 sbit RSN=P2^6;
+sbit K1=P3^1;
+sbit K2=P3^0;
+sbit K3=P3^2;
+sbit K4=P3^3;
+sbit S1=P1^3;
+sbit S2=P1^2;
+sbit S3=P1^1;
+sbit S5=P1^7;
+sbit S4=P1^0;
 uchar code xie_add[]={0x80,0x82,0x84,0x86,0x88,0x8a,0x8c};
 uchar code du_add[]={0x81,0x83,0x85,0x87,0x89,0x8b,0x8d};
 uchar time[7]={50,59,17,13,10,6,18};
-uchar miao,fen,shi,nian,yue,ri;
+uchar miao,fen,shi,nian,yue,ri,K11,flag,S11,xq;
 void delay(uint z)
 {
 	uint x,y;
@@ -47,10 +56,13 @@ uchar du_ds(uchar add)
 	CEN=0;
 	_nop_();
 	_nop_();
+	_nop_();
 	SCLK=0;
 	_nop_();
 	_nop_();
+	_nop_();
 	CEN=1;
+	_nop_();
 	_nop_();
 	_nop_();
 	xie_zijie(add);
@@ -63,9 +75,11 @@ uchar du_ds(uchar add)
 		_nop_();
 		_nop_();
 		_nop_();
+		_nop_();
 		SCLK=1;
 	}
 	CEN=0;
+	_nop_();
 	_nop_();
 	_nop_();
 	CEN=0;
@@ -77,10 +91,13 @@ uchar du_ds(uchar add)
 	SCLK=1;
 	_nop_();
 	_nop_();
+	_nop_();
 	IO=0;
 	_nop_();
 	_nop_();
+	_nop_();
 	IO=1;
+	_nop_();
 	_nop_();
 	_nop_();
 	return shuju;
@@ -163,6 +180,8 @@ void LCD_init()
 	xie_LCDshuju('-');
 	xie_LCDcom(0x88);
 	xie_LCDshuju('-');
+	//xie_LCDcom(0x80+0x40+10);
+	//xie_LCDcom(0x0f);
 	
 }
 void xianshi_sfm(uchar add,uchar shuju)
@@ -204,30 +223,325 @@ void xianshi_riqi(uchar shuju)
 			xie_LCDshuju(0x53);xie_LCDshuju(0x75);xie_LCDshuju(0x6e);break;
 	}	
 }
+void jianpan()
+{
+	if(K1==0)
+	{
+		delay(5);
+		if(K1==0)
+		{
+			while(!K1);
+			K11++;
+			if(K11==1)
+			{
+				flag=1;
+				xie_ds(0x8e,0x00);
+				xie_ds(0x80,0x80);
+				xie_LCDcom(0x80+0x40+10);
+				xie_LCDcom(0x0f);
+			}
+			if(K11==2)
+			{
+				xie_LCDcom(0x80+0x40+7);
+			}
+			if(K11==3)
+			{
+				xie_LCDcom(0x80+0x40+4);
+			}
+			if(K11==4)
+			{
+				ds_init();
+				delay(10);
+				xie_LCDcom(0x0c);
+				xie_ds(0x80,0x00);
+				xie_ds(0x8e,0x80);
+				K11=0;
+				flag=0;
+			}
+		}
+	}
+	if(K4==0)
+	{
+		delay(5);
+		if(K4==0)
+		{
+			while(!K4);
+			K11--;
+			if(K11==0)
+			{
+				K11=3;
+				xie_LCDcom(0x80+0x40+4);
+			}
+			if(K11==2)
+			{
+				xie_LCDcom(0x80+0x40+7);
+			}
+			if(K11==1)
+			{
+				xie_LCDcom(0x80+0x40+10);
+			}
+		}
+	}
+	if(K11!=0)
+	{
+		if(K2==0)
+		{
+			delay(5);
+			if(K2==0)
+			{
+				while(!K2);
+				if(K11==1)
+				{
+					miao++;
+					if(miao==60)
+						miao=0;
+					time[0]=miao;
+					xianshi_sfm(10,miao);
+					xie_LCDcom(0x80+0x40+10);
+				}
+				if(K11==2)
+				{
+					fen++;
+					if(fen==60)
+						fen=0;
+					time[1]=fen;
+					xianshi_sfm(7,fen);
+					xie_LCDcom(0x80+0x40+7);
+				}
+				if(K11==3)
+				{
+					shi++;
+					if(shi==24)
+						shi=0;
+					time[2]=shi;
+					xianshi_sfm(4,shi);
+					xie_LCDcom(0x80+0x40+4);
+				}
+			}
+		}
+		if(K3==0)
+		{
+			delay(5);
+			if(K3==0)
+			{
+				while(!K3);
+				if(K11==1)
+				{
+					miao--;
+					if(miao==-1)
+						miao=59;
+					time[0]=miao;
+					xianshi_sfm(10,miao);
+					xie_LCDcom(0x80+0x40+10);
+				}
+				if(K11==2)
+				{
+					fen--;
+					if(fen==-1)
+						fen=59;
+					time[1]=fen;
+					xianshi_sfm(7,fen);
+					xie_LCDcom(0x80+0x40+7);
+				}
+				if(K11==3)
+				{
+					shi--;
+					if(shi==-1)
+						shi=23;
+					time[2]=shi;
+					xianshi_sfm(4,shi);
+					xie_LCDcom(0x80+0x40+4);
+				}
+			}
+		}
+	}
+	if(S1==0)
+	{
+		delay(5);
+		if(S1==0)
+		{
+			while(!S1);
+			S11++;
+			if(S11==1)
+			{
+				flag=1;
+				xie_ds(0x8e,0x00);
+				xie_ds(0x80,0x80);
+				xie_LCDcom(0x80+12);
+				xie_LCDcom(0x0f);
+			}
+			if(S11==2)
+			{
+				xie_LCDcom(0x80+9);
+			}
+			if(S11==3)
+			{
+				xie_LCDcom(0x80+6);
+			}
+			if(S11==4)
+			{
+				xie_LCDcom(0x80+1);
+			}
+			if(S11==5)
+			{
+				ds_init();
+				delay(10);
+				xie_LCDcom(0x0c);
+				xie_ds(0x80,0x00);
+				xie_ds(0x8e,0x80);
+				S11=0;
+				flag=0;
+			}
+		}
+	}
+	if(S4==0)
+	{
+		delay(5);
+		if(S4==0)
+		{
+			while(!S4);
+			S11--;
+			if(S11==0)
+			{
+				S11=4;
+				xie_LCDcom(0x80+1);
+			}
+			if(S11==3)
+			{
+				xie_LCDcom(0x80+6);
+			}
+			if(S11==2)
+			{
+				xie_LCDcom(0x80+9);
+			}
+			if(S11==1)
+			{
+				xie_LCDcom(0x80+12);
+			}
+		}
+	}
+	if(S11!=0)
+	{
+		if(S2==0)
+		{
+			delay(5);
+			if(S2==0)
+			{
+				while(!S2);
+				if(S11==1)
+				{
+					xq++;
+					if(xq==8)
+						xq=0;
+					time[5]=xq;
+					xianshi_riqi(xq);
+					xie_LCDcom(0x80+12);
+				}
+				if(S11==2)
+				{
+					ri++;
+					if(ri==32)
+						ri=1;
+					time[3]=ri;
+				  xianshi_nyr(9,ri);
+					xie_LCDcom(0x80+9);
+				}
+				if(S11==3)
+				{
+					yue++;
+					if(yue==13)
+						yue=1;
+					time[4]=yue;
+					xianshi_nyr(6,yue);
+					xie_LCDcom(0x80+6);
+				}
+				if(S11==4)
+				{
+					nian++;
+					if(nian==100)
+						nian=9;
+					time[6]=nian;
+					xianshi_nyr(3,nian);
+					xie_LCDcom(0x80+1);
+				}
+			}
+		}
+		if(S3==0)
+		{
+			delay(5);
+			if(S3==0)
+			{
+				while(!S3);
+				if(S11==1)
+				{
+					xq--;
+					if(xq==0)
+						xq=7;
+					time[5]=xq;
+					xianshi_riqi(xq);
+					xie_LCDcom(0x80+12);
+				}
+				if(S11==2)
+				{
+					ri--;
+					if(ri==0)
+						ri=31;
+					time[3]=ri;
+				  xianshi_nyr(9,ri);
+					xie_LCDcom(0x80+9);
+				}
+				if(S11==3)
+				{
+					yue--;
+					if(yue==0)
+						yue=12;
+					time[4]=yue;
+					xianshi_nyr(6,yue);
+					xie_LCDcom(0x80+6);
+				}
+				if(S11==4)
+				{
+					nian--;
+					if(nian==-1)
+						nian=99;
+					time[6]=nian;
+					xianshi_nyr(3,nian);
+					xie_LCDcom(0x80+1);
+				}
+			}
+		}
+	}
+}
 void main()
 {
 	uchar i;
+	S5=0;
 	ds_init();
 	LCD_init();
 	while(1)
 	{
-		du_time();
-		for(i=0;i<7;i++)
+		jianpan();
+		if(flag==0)
 		{
-			time[i]=BCD_Dec(time[i]);
-		}
-		miao=time[0];
-		xianshi_sfm(10,miao);
-		fen=time[1];
-		xianshi_sfm(7,fen);
-		shi=time[2];
-		xianshi_sfm(4,shi);
-		nian=time[6];
-		xianshi_nyr(3,nian);
-		yue=time[4];
-		xianshi_nyr(6,yue);
-		ri=time[3];
-		xianshi_nyr(9,ri);
-		xianshi_riqi(time[5]);
+			du_time();
+			for(i=0;i<7;i++)
+			{
+				time[i]=BCD_Dec(time[i]);
+			}
+			miao=time[0];
+			xianshi_sfm(10,miao);
+			fen=time[1];
+			xianshi_sfm(7,fen);
+			shi=time[2];
+			xianshi_sfm(4,shi);
+			nian=time[6];
+			xianshi_nyr(3,nian);
+			yue=time[4];
+			xianshi_nyr(6,yue);
+			ri=time[3];
+			xianshi_nyr(9,ri);
+			xianshi_riqi(time[5]);
+	  }
 	}
 }
+
