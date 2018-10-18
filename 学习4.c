@@ -1,568 +1,237 @@
 #include<reg52.h>
-#define uint unsigned int
-#define uchar unsigned char
+#include<intrins.h>
+typedef unsigned char uint8;
+typedef unsigned int uint16;
+typedef char int8;
+typedef int int16;
+sbit RS=P2^6;
+sbit RW=P2^5;
 sbit EN=P2^7;
-sbit RWN=P2^5;
-sbit RSN=P2^6;
-sbit K1=P3^1;
-sbit K2=P3^0;
-sbit K3=P3^2;
-sbit K4=P3^3;
-sbit S1=P1^3;
-sbit S2=P1^2;
-sbit S3=P1^1;
-sbit S4=P1^7;
-sbit S5=P1^0;
-uchar code liebiao[]="2018-10-10 Wed";
-uchar code liebiao1[]="00:00:00";
-uchar a,K11,S11,b;
-char miao,shi,fen,nian,nian1,nian2,nian3,nian4,yue,ri1,ri2,ri,flag;
-void delay(uint z)
+sbit BUSY=P0^7;
+sbit DQ=P3^7; //?????
+uint8 code word[]=
 {
-	uint x,y;
-	for(x=z;x>0;x--)
-		for(y=100;y>0;y--);
-}
-void xie_com(uchar com)
-{
-	RSN=0;
-	RWN=0;
-	EN=0;
-	P0=com;
-	delay(5);
-	EN=1;
-	delay(10);
-	EN=0;
-}
-void xie_shuju(uchar shuju)
-{
-	RSN=1;
-	RWN=0;
-	EN=0;
-	P0=shuju;
-	delay(5);
-	EN=1;
-	delay(10);
-	EN=0;
-}
-void init()
-{
-	uchar i;
-	//shi=23;
-	//fen=59;
-	//miao=54;
-	//ri=31;
-	//yue=12;
-	//nian=18;
-	//b=7;
-	S4=0;
-	EN=0;
-	b=1;
-	xie_com(0x38);
-	xie_com(0x0c);
-	xie_com(0x06);
-	xie_com(0x01);
-	xie_com(0x80+0x01);
-	for(i=0;i<14;i++)
-	{
-		xie_shuju(liebiao[i]);
-		delay(5);
-	}
-	xie_com(0x80+0x44);
-	for(i=0;i<8;i++)
-	{
-		xie_shuju(liebiao1[i]);
-		delay(5);
-	}
-	TMOD=0x01;
-	TH0=(65536-50000)/256;
-	TL0=(65536-50000)%256;
-	ET0=1;
-	EA=1;
-	TR0=1;
-}
-void xie_sfm(uchar add,uchar shu)
-{
-	uchar shi,ge;
-	shi=shu/10;
-	ge=shu%10;
-	xie_com(0x80+0x40+add);
-	xie_shuju(0x30+shi);
-	xie_shuju(0x30+ge);
-}
-void xie_riqi(uchar R)
-{
-	xie_com(0x80+12);
-	switch(R)
-	{
-		case(1):
-			xie_shuju(0x4d);xie_shuju(0x6f);xie_shuju(0x6e);break;
-		case(2):
-			xie_shuju(0x54);xie_shuju(0x75);xie_shuju(0x65);break;
-		case(3):
-			xie_shuju(0x57);xie_shuju(0x65);xie_shuju(0x64);break;
-		case(4):
-			xie_shuju(0x54);xie_shuju(0x68);xie_shuju(0x75);break;
-		case(5):
-			xie_shuju(0x46);xie_shuju(0x72);xie_shuju(0x69);break;
-		case(6):
-			xie_shuju(0x53);xie_shuju(0x61);xie_shuju(0x74);break;
-		case(7):
-			xie_shuju(0x53);xie_shuju(0x75);xie_shuju(0x6e);break;
-	}	
-}
-void xie_nyr(uchar biaozhi,uchar shu)
-{
-	uchar qian,bai,shi,ge;
-	qian=shu/1000;
-	bai=shu%1000/100;
-	shi=shu%100/10;
-	ge=shu%10;
-	switch(biaozhi)
-	{
-		case(1):
-			xie_com(0x80+10);xie_shuju(0x30+ge);break;
-		case(2):
-			xie_com(0x80+9);xie_shuju(0x30+ge);break;
-		case(3):
-			xie_com(0x80+6);xie_shuju(0x30+shi);xie_shuju(0x30+ge);break;
-		case(4):
-			xie_com(0x80+4);xie_shuju(0x30+ge);break;
-		case(5):
-			xie_com(0x80+3);xie_shuju(0x30+ge);break;
-		case(6):
-			xie_com(0x80+2);xie_shuju(0x30+ge);break;
-		case(7):
-			xie_com(0x80+1);xie_shuju(0x30+ge);break;	
-		case(8):
-			xie_com(0x80+9);xie_shuju(0x30+shi);xie_shuju(0x30+ge);break;
-		case(9):
-			xie_com(0x80+6);xie_shuju(0x30+shi);xie_shuju(0x30+ge);break;
-		case(10):
-			xie_com(0x80+1);xie_shuju(0x30+qian);xie_shuju(0x30+bai);xie_shuju(0x30+shi);xie_shuju(0x30+ge);break;
-	}
-}
-void jianpan()
-{
-	if(K1==0)
-	{
-		delay(5);
-		if(K1==0)
-		{
-			while(!K1);
-			K11++;
-			if(K11==1)
-			{
-				TR0=0;
-				xie_com(0x80+0x40+10);
-				xie_com(0x0f);
-			}
-			if(K11==2)
-			{
-				xie_com(0x80+0x40+7);
-			}
-			if(K11==3)
-			{
-				xie_com(0x80+0x40+4);
-			}
-			if(K11==4)
-			{
-				K11=0;
-				xie_com(0x0c);
-				TR0=1;
-			}
-		}
-	}
-	if(K4==0)
-	{
-		delay(5);
-		if(K4==0)
-		{
-			while(!K4);
-			K11--;
-			if(K11==0)
-			{
-				K11=3;
-				xie_com(0x80+0x40+4);
-			}
-			if(K11==2)
-			{
-				xie_com(0x80+0x40+7);
-			}
-			if(K11==1)
-			{
-				xie_com(0x80+0x40+10);
-			}
-		}
-	}
-	if(K11!=0)
-	  {
-			if(K2==0)
-			{
-				delay(5);
-				if(K2==0)
-				{
-					while(!K2);
-					if(K11==1)
-					{
-						miao++;
-						if(miao==60)
-							miao=0;
-						xie_sfm(10,miao);
-						xie_com(0x80+0x40+10);
-					}
-					if(K11==2)
-					{
-						fen++;
-						if(fen==60)
-							fen=0;
-						xie_sfm(7,fen);
-						xie_com(0x80+0x40+7);
-					}
-					if(K11==3)
-					{
-						shi++;
-						if(shi==24)
-							shi=0;
-						xie_sfm(4,shi);
-						xie_com(0x80+0x40+4);
-					}
-				}
-			}
-			if(K3==0)
-			{
-				delay(5);
-				if(K3==0)
-				{
-					while(!K3);
-					if(K11==1)
-					{
-						miao--;
-						if(miao==-1)
-							miao=59;
-						xie_sfm(10,miao);
-						xie_com(0x80+0x40+10);
-					}
-					if(K11==2)
-					{
-						fen--;
-						if(fen==-1)
-							fen=59;
-						xie_sfm(7,fen);
-						xie_com(0x80+0x40+7);
-					}
-					if(K11==3)
-					{
-						shi--;
-						if(shi==-1)
-							shi=23;
-						xie_sfm(4,shi);
-						xie_com(0x80+0x40+4);
-					}
-				}
-			}
-		}
-	if(S1==0)
-	{
-		delay(5);
-		if(S1==0)
-		{
-			while(!S1);
-			S11++;
-			if(S11==1)
-			{
-				TR0=0;
-				xie_com(0x0f);
-				xie_com(0x80+12);
-			}
-			if(S11==2)
-			{
-				xie_com(0x80+10);
-			}
-			if(S11==3)
-			{
-				xie_com(0x80+9);
-			}
-			if(S11==4)
-			{
-				xie_com(0x80+6);
-			}
-			if(S11==5)
-			{
-				xie_com(0x80+4);
-			}
-			if(S11==6)
-			{
-				xie_com(0x80+3);
-			}
-			if(S11==7)
-			{
-				xie_com(0x80+2);
-			}
-			if(S11==8)
-			{
-				xie_com(0x80+1);
-			}
-			if(S11==9)
-			{
-				S11=0;
-				xie_com(0x0c);
-				TR0=1;
-			}
-		}
-	}
-	if(S5==0)
-	{
-		delay(5);
-		{
-			while(!S5);
-			S11--;
-			if(S11==0)
-			{
-				S11=8;
-				xie_com(0x80+1);
-			}
-			if(S11==7)
-			{
-				xie_com(0x80+2);
-			}
-			if(S11==6)
-			{
-				xie_com(0x80+3);
-			}
-			if(S11==5)
-			{
-				xie_com(0x80+4);
-			}
-			if(S11==4)
-			{
-				xie_com(0x80+6);
-			}
-			if(S11==3)
-			{
-				xie_com(0x80+9);
-			}
-			if(S11==2)
-			{
-				xie_com(0x80+10);
-			}
-			if(S11==1)
-			{
-				xie_com(0x80+12);
-			}
-		}
-	}
-	if(S11!=0)
-	{
-		if(S2==0)
-		{
-			delay(5);
-			if(S2==0)
-			{
-				while(!S2);
-				if(S11==1)
-				{
-					b++;
-					if(b==8)
-						b=1;
-					xie_riqi(b);
-					xie_com(0x80+12);
-				}
-				if(S11==2)
-				{
-					ri1++;
-					if(ri1==10)
-						ri1=0;
-					xie_nyr(1,ri1);
-					xie_com(0x80+10);
-				}
-				if(S11==3)
-				{
-					ri2++;
-					if(ri2==4)
-						ri2=0;
-					xie_nyr(2,ri2);
-					xie_com(0x80+9);
-				}
-				if(S11==4)
-				{
-					yue++;
-					if(yue==13)
-						yue=1;
-					xie_nyr(3,yue);
-					xie_com(0x80+6);
-				}
-				if(S11==5)
-				{
-					nian1++;
-					if(nian1==10)
-						nian1=0;
-					xie_nyr(4,nian1);
-					xie_com(0x80+4);
-				}
-				if(S11==6)
-				{
-					nian2++;
-					if(nian2==10)
-						nian2=0;
-					xie_nyr(5,nian2);
-					xie_com(0x80+3);
-				}
-				if(S11==7)
-				{
-					nian3++;
-					if(nian3==10)
-						nian3=0;
-					xie_nyr(6,nian3);
-					xie_com(0x80+2);
-				}
-				if(S11==8)
-				{
-					nian4++;
-					if(nian4==10)
-						nian4=0;
-					xie_nyr(7,nian4);
-					xie_com(0x80+1);
-				}
-			}
-		}
-		if(S3==0)
-		{
-			delay(5);
-			if(S3==0)
-			{
-				while(!S3);
-				if(S11==1)
-				{
-					b--;
-					if(b==0)
-						b=7;
-					xie_riqi(b);
-					xie_com(0x80+12);
-				}
-				if(S11==2)
-				{
-					ri1--;
-					if(ri1==-1)
-						ri1=9;
-					xie_nyr(1,ri1);
-					xie_com(0x80+10);
-				}
-				if(S11==3)
-				{
-					ri2--;
-					if(ri2==-1)
-						ri2=9;
-					xie_nyr(2,ri2);
-					xie_com(0x80+9);
-				}
-				if(S11==4)
-				{
-					yue--;
-					if(yue==0)
-						yue=12;
-					xie_nyr(3,yue);
-					xie_com(0x80+6);
-				}
-				if(S11==5)
-				{
-					nian1--;
-					if(nian1==-1)
-						nian1=9;
-					xie_nyr(4,nian1);
-					xie_com(0x80+4);
-				}
-				if(S11==6)
-				{
-					nian2--;
-					if(nian2==-1)
-						nian2=9;
-					xie_nyr(5,nian2);
-					xie_com(0x80+3);
-				}
-				if(S11==7)
-				{
-					nian3--;
-					if(nian3==-1)
-						nian3=9;
-					xie_nyr(6,nian3);
-					xie_com(0x80+2);
-				}
-				if(S11==8)
-				{
-					nian4--;
-					if(nian4==-1)
-						nian4=9;
-					xie_nyr(7,nian4);
-					xie_com(0x80+1);
-				}
+  "Temperature :"
+};
+uint8 num_temp[]={"0123456789"};
+#define nops();  {_nop_(); _nop_(); _nop_(); _nop_();} //????? 4us
 
-			}
-			
-		}
-	}
+void delay(uint16 n)
+{
+  while (n--);
 }
+void delay_ms(uint16 m)
+{
+  uint8 n=120;
+  while(m--)
+    while(n--);
+}
+/*
+ * 18B20????
+*/
+void DS1802_reset()
+{
+  uint8 flag=1;
+  while(flag)
+  {
+    while(flag)
+    {
+      DQ=1;
+      delay(1);
+      DQ=0;
+      delay(50); //550us
+      DQ=1;
+      delay(6); //66us
+      flag=DQ;
+    }
+    delay(45);//??500us
+    flag=~DQ;//500us?????,DQ=1;   
+  }
+  DQ=1;  
+}
+/*
+ * 18B20?1?????
+ * ?1-WIRE????????
+*/
+void write_byte(uint8 dat)
+{
+  uint8 i;
+  for(i=0;i<8;i++)
+  {
+    DQ=1;
+    _nop_();
+    DQ=0;
+    nops();
+    DQ=dat&0x01;//?????
+    delay(6); //66us
+    dat>>=1; //????
+  }
+  DQ=1;
+  delay(1);
+}
+
+/*
+ * 18B20?1?????
+ * ?1-WIRE?????????
+*/
+uint8 read_byte()
+{
+  uint8 i,byte=0;
+  for(i=0;i<8;i++)
+  {
+    byte>>=1;
+    DQ=1;
+    _nop_();
+    DQ=0;
+    nops();
+    DQ=1;
+    nops();
+    if(DQ==1)  byte|=0x80;
+    delay(6);
+  }
+  DQ=1;
+  return byte; 
+}
+/*
+ * ??????
+*/
+void start_temp_sensor()
+{
+  DS1802_reset();
+  write_byte(0xcc);  // ?Skip ROM??
+  write_byte(0x44); // ????? 
+}
+/*
+ * ????
+*/
+int16 read_temp()
+{
+  uint8 temp_data[2]; // ??????
+  uint16 temp;
+  DS1802_reset();   // ??
+  write_byte(0xcc);  // ?Skip ROM??
+  write_byte(0xbe); // ????
+  temp_data[0]=read_byte(); //???8?
+  temp_data[1]=read_byte(); //???8?
+  temp=temp_data[1];
+  temp<<=8;
+  temp|=temp_data[0];
+  //temp>>=4; //????,?????16(1/16=0.0625)
+  return temp;
+}
+/*
+ * ????
+*/
+void wait()
+{
+  P0=0xff;
+  do
+  {
+    EN=0;
+    RS=0;
+    RW=1;
+    EN=1;
+  }while(BUSY==1);
+  EN=0;
+}
+/*
+ * ???
+*/
+void write_cmd(uint8 cmd)
+{
+  wait();
+  EN=0;
+  P0=cmd;
+  RS=0;
+  RW=0;
+  EN=1;
+  EN=0;
+}
+/*
+ * ???
+*/
+void write_dat(uint8 dat)
+{
+  wait();
+  EN=0;
+  P0=dat;
+  RS=1;
+  RW=0;
+  EN=1;
+  EN=0;
+}
+/*
+ * ???
+*/
+void lcd1602_init()
+{
+  delay_ms(15);
+  write_cmd(0x38);
+  delay_ms(5);
+  write_cmd(0x38);
+  delay_ms(5);
+  write_cmd(0x38);
+  delay_ms(5);
+
+  write_cmd(0x38);
+  write_cmd(0x0c);
+  write_cmd(0x06);
+  write_cmd(0x01);
+}
+/*
+ * ??????
+*/
+void write_lcd1602(uint8 addr,uint8 dat)
+{
+  write_cmd(addr);
+  write_dat(dat);
+}
+/*
+ * ????
+*/
+void write_string(uint8 addr,uint8 *p)
+{
+  write_cmd(addr);
+  while(*p!='\0')
+  {
+    write_dat(*p++) ;
+  } 
+}
+/*
+ * ???
+*/
 void main()
 {
-	init();
-	while(1)
-	{
-		jianpan();
-  }
-}
-void dingshi() interrupt 1
-{
-	TH0=(65536-50000)/256;
-	TL0=(65536-50000)%256;
-	a++;
-		if(a==20)
-		{
-			a=0;
-			miao++;
-			if(miao==60)
-			{
-				miao=0;
-				fen++;
-				if(fen==60)
-				{
-					fen=0;
-					shi++;
-					if(shi==24)
-					{
-						shi=0;
-						ri++;
-						b++;
-						if(b==8)
-							b=1;
-						if((yue==1||yue==3||yue==5||yue==7||yue==8||yue==10||yue==12)&&(ri==32))
-						{
-							ri=1;
-							yue++;
-						}
-						if((yue==4||yue==6||yue==9||yue==11)&&(ri==31))
-						{
-							ri=1;
-							yue++;
-						}
-						if((yue==2)&&(ri==29))
-						{
-							ri=1;
-							yue++;
-						}
-						if(yue==13)
-						{
-							yue=1;
-							nian++;
-							xie_nyr(10,nian);
-						}
-						xie_nyr(9,yue);
-						xie_riqi(b);
-						xie_nyr(8,ri);
-					}
-					xie_sfm(4,shi);
-				}
-				xie_sfm(7,fen);
-			}
-			xie_sfm(10,miao);
-		}
+  uint16 temp;
+  lcd1602_init();
+  while(1)
+  {
+    start_temp_sensor();
+   delay_ms(100);
+    temp=read_temp();
+    if(temp&0x8000) //??????
+    {
+      temp=~temp+1;
+      temp=(temp*0.0625)*10+0.5;
+      write_lcd1602(0xc0,'-');
+      write_lcd1602(0xc1,num_temp[temp/1000]);
+      write_lcd1602(0xc2,num_temp[(temp%1000)/100]);
+			write_lcd1602(0xc3,'.');
+      write_lcd1602(0xc4,num_temp[(temp%100)/10]);
+      write_lcd1602(0xc5,num_temp[temp%10]);
+   
+    }
+    else
+    {
+      temp=(temp*0.0625)*100+0.5 ;
+      write_lcd1602(0xc0,'+');
+      write_lcd1602(0xc1,num_temp[temp/1000]);
+      write_lcd1602(0xc2,num_temp[(temp%1000)/100]);
+			write_lcd1602(0xc3,'.');
+      write_lcd1602(0xc4,num_temp[(temp%100)/10]);
+      write_lcd1602(0xc5,num_temp[temp%10]);
+   
+    }
+    write_string(0x80,word);  //????
+  } 
 }
