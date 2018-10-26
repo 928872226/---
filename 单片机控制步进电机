@@ -1,0 +1,147 @@
+# 用了两天的时间，熟悉了步进电机的工作原理，完成了步进电机正转、反转、减速控制
+# 步进电机的原理很简单：脉冲频率控制转速，脉冲个数控制位置
+# 以下为示例程序
+#include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+sbit MA=P2^0;
+sbit MB=P2^1;
+sbit MC=P2^2;
+sbit MD=P2^3;
+sbit K1=P1^0;
+sbit K2=P1^1;
+sbit K3=P1^2
+sbit K4=P1^3;
+sbit K5=P1^4;
+sbit LED1=P0^0;
+sbit LED2=P0^1;
+uchar zf,step,time,speed=10;
+void delay(uchar a)
+{
+  uchar x,y;
+  for(x=a;x>0;x--)
+    for(y=120;y>0;y--);
+}
+void dianjinyunxing(uchar sp)
+{
+  switch(sp)
+  {
+    case 0:
+      MA=1;MB=0;MC=0;MD=0;break;
+    case 1:
+      MA=1;MB=1;MC=0;MD=0;break;
+    case 2:
+      MA=0;MB=1;MC=0;MD=0;break;
+    case 3:
+      MA=0;MB=1;MC=1;MD=0;break;
+    case 4:
+      MA=0;MB=0;MC=1;MD=0;break;
+    case 5:
+      MA=0;MB=0;MC=1;MD=1;break;
+    case 6:
+      MA=0;MB=0;MC=0;MD=1;break;
+    case 7:
+      MA=1;MB=0;MC=0;MD=1;break;  
+  }
+}
+void time0_init()
+{
+  TMOD=0x01;
+  TH0=(65536-10000)/256;
+  TL0=(65536-10000)%256;
+  ET0=1;
+  EA=1;
+  TR0=0;
+}
+void jianpan()
+{
+  if(K1==0)
+  {
+    delay(10);
+    if(K1==0)
+    {
+      while(!K1);
+      TR0=0;
+      LED1=1;
+      LED2=1;
+    }
+  }
+  if(K2==0)
+  {
+    delay(10);
+    if(K2==0)
+    {
+      while(!K2);
+      speed=10;
+      zf=0;
+      TR0=1;
+      LED1=0;
+      LED2=1;
+    }
+  }
+  if(K3==0)
+  {
+    delay(10);
+    if(K3==0)
+    {
+      while(!K3);
+      speed=10;
+      zf=1;
+      TR0=1;
+      LED1=1;
+      LED2=0;
+    }
+  }
+  if(K4==0)
+  {
+    delay(10);
+    if(K4==0)
+    {
+      while(!K4);
+      speed--;
+      if(speed<=5)
+        speed=5;
+    }
+  }
+  if(K5==0)
+  {
+    delay(10);
+    if(K5==0)
+    {
+      while(!K5);
+      speed++;
+      if(speed>=15)
+        speed=15;
+    }
+  }
+}
+void main()
+{
+  time0_init();
+  while(1);
+}
+void time0() interrupt 1
+{
+  TH0=(65536-10000)/256;
+  TL0=(65536-10000)%256;
+  time++;
+  if(time==speed)
+  {
+    if(zf==0)
+    {
+      step--;
+      if(step==-1)
+        step=7;
+    }
+    if(zf==1)
+    { 
+      step++;
+      if(step==8)
+        step=0;
+    }
+    dianjinyunxing(step);
+    time=0;
+  }
+}
+
+# 加油！稳住，接下来用LABVIEW来实现上述功能
